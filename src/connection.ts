@@ -3515,7 +3515,14 @@ export class Connection {
     transactionOrMessage: Transaction | Message,
     signers?: Array<Signer>,
     includeAccounts?: boolean | Array<PublicKey>,
+    options?: {replaceRecentBlockhash: boolean},
   ): Promise<RpcResponseAndContext<SimulatedTransactionResponse>> {
+    if (signers && options?.replaceRecentBlockhash) {
+      throw new Error(
+        'signers cannot be provided if replaceRecentBlockhash is enabled',
+      );
+    }
+
     let transaction;
     if (transactionOrMessage instanceof Transaction) {
       transaction = transactionOrMessage;
@@ -3563,6 +3570,7 @@ export class Connection {
     const config: any = {
       encoding: 'base64',
       commitment: this.commitment,
+      ...options,
     };
 
     if (includeAccounts) {
@@ -3573,6 +3581,7 @@ export class Connection {
       ).map(key => key.toBase58());
 
       config['accounts'] = {
+        // SOCK CHANGE
         encoding: 'base64',
         addresses,
       };
